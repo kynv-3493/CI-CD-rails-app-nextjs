@@ -1,0 +1,30 @@
+name: 🛠️ BE Task
+description: Backend task – API, logic, database...
+title: "[BE]: "
+labels: ["backend", "task"]
+assignees: []
+
+body:
+  - type: input
+    id: goal
+    attributes:
+      label: "🌟 Goal"
+      placeholder: "Write API /api/login"
+    validations:
+      required: true
+
+  - type: textarea
+    id: checklist
+    attributes:
+      label: "✅ Work checklist"
+      description: "Write checklist in Markdown (each line should have `- [ ]`)"
+      placeholder: |
+        - [ ] Checklist 1
+        - [ ] Checklist 2
+        - [ ] Checklist 3
+
+  - type: textarea
+    id: note
+    attributes:
+      label: "📄 Additional notes"
+      placeholder: "Docs, Swagger, PR..."

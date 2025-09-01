@@ -1,0 +1,36 @@
+name: 📆 Feature / Epic
+description: Parent task containing multiple subtasks
+title: "[Feature]: "
+labels: ["feature", "epic", "fullstack"]
+assignees: []
+
+body:
+  - type: input
+    id: goal
+    attributes:
+      label: "🌟 Overall goal"
+      placeholder: "Complete login functionality"
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: "📄 Scope"
+      placeholder: "Includes UI, API, validation..."
+
+  - type: textarea
+    id: checklist
+    attributes:
+      label: "✅ Work checklist"
+      description: "Write checklist in Markdown (each line should have `- [ ]`)"
+      placeholder: |
+        - [ ] Checklist 1
+        - [ ] Checklist 2
+        - [ ] Checklist 3
+
+  - type: textarea
+    id: note
+    attributes:
+      label: "📄 Additional notes"
+      placeholder: "Design link, specs..."

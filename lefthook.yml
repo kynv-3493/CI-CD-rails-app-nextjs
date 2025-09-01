@@ -1,0 +1,13 @@
+pre-commit:
+  parallel: true
+  jobs:
+    - run: npm run fmt & npm run lint:fix
+      root: fe
+      glob: "fe/**/*.{js,ts,jsx,tsx}"
+      stage_fixed: true
+
+pre-push:
+  jobs:
+    - run: npx tsc -b
+      root: fe
+      glob: "fe/**/*.{js,ts,jsx,tsx}"

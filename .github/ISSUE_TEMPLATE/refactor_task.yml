@@ -1,0 +1,30 @@
+name: 🧹 Refactor Task
+description: Code cleanup, optimization, DRY, clarity
+title: "[Refactor]: "
+labels: ["refactor", "tech-debt"]
+assignees: []
+
+body:
+  - type: textarea
+    id: reason
+    attributes:
+      label: "🔍 Reason for refactor"
+      placeholder: "Duplicate code, hard to maintain..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: checklist
+    attributes:
+      label: "✅ Work checklist"
+      description: "Write checklist in Markdown (each line should have `- [ ]`)"
+      placeholder: |
+        - [ ] Checklist 1
+        - [ ] Checklist 2
+        - [ ] Checklist 3
+
+  - type: textarea
+    id: related
+    attributes:
+      label: "📄 Related"
+      placeholder: "PR, issue, docs..."

@@ -1,0 +1,30 @@
+name: 📌 General Task
+description: Task not clearly categorized as UI/Logic/BE
+title: "[Task]: "
+labels: ["task"]
+assignees: []
+
+body:
+  - type: input
+    id: goal
+    attributes:
+      label: "📄 Goal"
+      placeholder: "Describe the task/feature to be done"
+    validations:
+      required: true
+
+  - type: textarea
+    id: checklist
+    attributes:
+      label: "✅ Work checklist"
+      description: "Write checklist in Markdown (each line should have `- [ ]`)"
+      placeholder: |
+        - [ ] Checklist 1
+        - [ ] Checklist 2
+        - [ ] Checklist 3
+
+  - type: textarea
+    id: note
+    attributes:
+      label: "📄 Additional notes"
+      placeholder: "PR, issue, link..."

@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build_prepare:
+    # Prepare the environment for building and testing the Rails application
+    runs-on: ubuntu-latest
+    container:
+      image: ruby:3.4.3
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create vendor/bundle directory
+        run: mkdir -p be/vendor/bundle
+
+      - name: Cache Ruby Gems
+        uses: actions/cache@v4
+        with:
+          path: be/vendor/bundle
+          key: vendor-${{ runner.os }}-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
+            vendor-${{ runner.os }}-
+
+      - name: Bundle Install
+        run: |
+          cd be
+          bundle config set --local path 'vendor/bundle'
+          bundle install
+
+  test_rubocop:
+    needs: build_prepare
+    runs-on: ubuntu-latest
+    container:
+      image: ruby:3.4.3
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create vendor/bundle directory
+        run: mkdir -p be/vendor/bundle
+
+      - name: Cache Ruby Gems
+        uses: actions/cache@v4
+        with:
+          path: be/vendor/bundle
+          key: vendor-${{ runner.os }}-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
+            vendor-${{ runner.os }}-
+
+      - name: Rubocop Lint
+        run: |
+          cd be
+          bundle config set --local path 'vendor/bundle'
+          bundle install
+          bundle exec rubocop --require rubocop/formatter/checkstyle_formatter --format RuboCop::Formatter::CheckstyleFormatter --no-color app/ lib/
+
+  test_rspec:
+    needs: build_prepare
+    runs-on: ubuntu-latest
+    container:
+      image: ruby:3.4.3
+    services:
+      mysql-test:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: development
+          MYSQL_USER: dev
+          MYSQL_PASSWORD: dev
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create vendor/bundle directory
+        run: mkdir -p be/vendor/bundle
+
+      - name: Cache Ruby Gems
+        uses: actions/cache@v4
+        with:
+          path: be/vendor/bundle
+          key: vendor-${{ runner.os }}-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
+            vendor-${{ runner.os }}-
+
+      - name: Run Rspec tests
+        run: |
+          cd be
+          bundle config set --local path 'vendor/bundle'
+          bundle install
+          cp config/database-ci.yml config/database.yml
+          RAILS_ENV=test bundle exec rails db:drop db:create db:migrate
+          bundle exec rspec --format documentation

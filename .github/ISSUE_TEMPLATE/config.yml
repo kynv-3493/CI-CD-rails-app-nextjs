@@ -1,0 +1,32 @@
+blank_issues_enabled: false
+
+contact_links: []
+
+issue_templates:
+  - name: 🎨 UI Task
+    description: UI work – layout, style, responsiveness...
+    file: ui_task.yml
+
+  - name: 🧠 FE Logic Task
+    description: Frontend logic – API calls, flow handling
+    file: fe_logic_task.yml
+
+  - name: 🛠️ BE Task
+    description: Backend logic – API, database, validation...
+    file: be_task.yml
+
+  - name: 🐞 Bug Report
+    description: Report UI, logic, or API bugs
+    file: bug_report.yml
+
+  - name: 🧹 Refactor Task
+    description: Code cleanup and optimization (FE or BE)
+    file: refactor_task.yml
+
+  - name: 📦 Feature / Epic
+    description: Parent task containing multiple subtasks
+    file: feature_task.yml
+
+  - name: 📌 General Task
+    description: Other tasks without clear classification
+    file: general_task.yml

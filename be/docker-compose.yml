@@ -1,0 +1,75 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - EMAIL_SERVICE_PORT=1025
+      - EMAIL_SERVICE_ADDRESS=mailcatcher
+      - LANG=C.UTF-8
+      - REDIS_URL=redis://redis:6379/0
+    tty: true
+    volumes:
+      - .:/rails
+      - bundle:/usr/local/bundle
+    ports:
+      - 3001:3000
+    depends_on:
+      - db
+      - redis
+      - mailcatcher
+      - minio
+  db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=dev
+      - MYSQL_PASSWORD=dev
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - 3306:3306
+  redis:
+    image: redis:alpine
+    ports:
+      - 6379:6379
+  mailcatcher:
+    image: yappabe/mailcatcher
+    ports:
+      - 1025:1025
+      - 1080:1080
+    command: mailcatcher --no-quit --foreground --ip=0.0.0.0
+  sidekiq:
+    image: ruby:3.4.3
+    environment:
+      - LANG=C.UTF-8
+      - EMAIL_SERVICE_PORT=1025
+      - EMAIL_SERVICE_ADDRESS=mailcatcher
+    tty: true
+    volumes:
+      - .:/rails
+      - bundle:/usr/local/bundle
+    depends_on:
+      - db
+      - redis
+      - mailcatcher
+  minio:
+    image: minio/minio:latest
+    ports:
+      - 9000:9000
+      - 9001:9001
+    volumes:
+      - minio_data:/data
+    environment:
+      - MINIO_ROOT_USER=minio # MINIO_ACCESS_KEY
+      - MINIO_ROOT_PASSWORD=minio_password # MINIO_SECRET_KEY
+    command: ["server", "/data", "--console-address", ":9001"]
+
+volumes:
+  db_data:
+  bundle:
+  minio_data:
+
+networks:
+  default:
+    driver: bridge

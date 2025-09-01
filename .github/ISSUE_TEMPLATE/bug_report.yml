@@ -1,0 +1,32 @@
+name: 🐞 Bug Report
+description: Report UI/Logic/API bugs
+title: "[Bug]: "
+labels: ["bug"]
+assignees: []
+
+body:
+  - type: textarea
+    id: steps
+    attributes:
+      label: "🔁 Steps to reproduce"
+      placeholder: |
+        1. Go to...
+        2. Click on...
+        3. See the error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: "✅ Expected result"
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: "❌ Actual result"
+
+  - type: textarea
+    id: log
+    attributes:
+      label: "📄 Error log / Screenshot (if any)"

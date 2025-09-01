@@ -1,0 +1,74 @@
+# MySQL. Versions 5.7 and up are supported.
+#
+# Install the mysql2 driver:
+#   gem install mysql2
+# On macOS (Homebrew):
+#   brew install mysql
+#   gem install mysql2
+# On Windows:
+#   gem install mysql2
+#       Make sure MySQL server is installed and its /bin directory is on your PATH.
+#
+# Configure using Gemfile
+# gem "mysql2", ">= 0.5"
+
+default: &default
+  adapter: mysql2
+  encoding: utf8mb4
+  collation: utf8mb4_unicode_ci
+  host: db
+  username: root
+  password: <%= ENV.fetch("MYSQL_ROOT_PASSWORD") { "root" } %>
+  # For details on connection pooling, see Rails configuration guide
+  # https://guides.rubyonrails.org/configuring.html#database-pooling
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+development:
+  <<: *default
+  database: development
+
+  # The specified database user being used to connect to MySQL.
+  # To create additional users in MySQL see `CREATE USER` command.
+  # When left blank, MySQL will use the default root user.
+  #username: root
+
+  # The password associated with the MySQL user.
+  #password:
+
+  # Connect on TCP socket. Omitted by default if using host/domain socket.
+  #host: localhost
+
+  # The TCP port the server listens on. Defaults to 3306.
+  #port: 3306
+
+  # Schema / database search path. MySQL defaults to the specified database name.
+  #schema_search_path: myapp,sharedapp,public
+
+  # Minimum log levels in increasing order:
+  # debug, info, warn, error, fatal, unknown
+  # Defaults to warn.
+  #min_messages: info
+
+test:
+  <<: *default
+  database: test
+
+# As with config/credentials.yml, never store sensitive information like your database password in your source code.
+# Instead, provide the password or a full connection URL as an environment variable when booting the app. For example:
+#
+#   DATABASE_URL="mysql2://myuser:mypass@localhost/somedatabase"
+#
+# If the connection URL is provided in the special DATABASE_URL environment variable, Rails will automatically merge its configuration values on top of
+# the values provided in this file. Alternatively, you can specify a connection URL environment variable explicitly:
+#
+#   production:
+#     url: <%= ENV["MY_APP_DATABASE_URL"] %>
+#
+# Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
+# for a full overview on how database connection configuration can be specified.
+
+production:
+  <<: *default
+  database: production
+  username: <%= ENV["MYSQL_USER"] || "root" %>
+  password: <%= ENV["MYSQL_PASSWORD"] %>

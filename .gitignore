@@ -1,0 +1,9 @@
+.DS_Store
+.docker/
+
+# Ignore the AWS SAM working directory
+.aws-sam/
+
+# Ignore the terraform cache directory and dependency lock files
+.terraform/
+.terraform.lock.hcl
