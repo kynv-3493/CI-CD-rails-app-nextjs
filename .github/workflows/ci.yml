@@ -1,98 +1,107 @@
-name: CI
+name: CI/CD
 
 on:
   push:
     branches: [main]
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     branches: [main]
 
 jobs:
-  build_prepare:
-    # Prepare the environment for building and testing the Rails application
+  filter:
     runs-on: ubuntu-latest
-    container:
-      image: ruby:3.4.3
+    outputs:
+      backend_changed: ${{ steps.paths.outputs.backend }}
+      frontend_changed: ${{ steps.paths.outputs.frontend }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Create vendor/bundle directory
-        run: mkdir -p be/vendor/bundle
-
-      - name: Cache Ruby Gems
-        uses: actions/cache@v4
+      - uses: actions/checkout@v5
+      - name: Determine changed paths
+        id: paths
+        uses: dorny/paths-filter@v2
         with:
-          path: be/vendor/bundle
-          key: vendor-${{ runner.os }}-${{ hashFiles('**/Gemfile.lock') }}
-          restore-keys: |
-            vendor-${{ runner.os }}-
+          filters: |
+            backend:
+              - 'be/**'
+              - '.github/**'
+            frontend:
+              - 'fe/**'
+              - '.github/**'
 
-      - name: Bundle Install
+      - name: Debug paths-filter outputs
         run: |
-          cd be
-          bundle config set --local path 'vendor/bundle'
-          bundle install
+          echo "Changed files (git diff):"
+          # show changed files between base and head (works in PR contexts)
+          git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1 || true
+          git --no-pager diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD || true
 
-  test_rubocop:
-    needs: build_prepare
+  backend_test:
+    needs: filter
+    if: ${{ github.event.pull_request.draft != true && needs.filter.outputs.backend_changed == 'true'}}
     runs-on: ubuntu-latest
     container:
       image: ruby:3.4.3
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Create vendor/bundle directory
-        run: mkdir -p be/vendor/bundle
-
-      - name: Cache Ruby Gems
-        uses: actions/cache@v4
-        with:
-          path: be/vendor/bundle
-          key: vendor-${{ runner.os }}-${{ hashFiles('**/Gemfile.lock') }}
-          restore-keys: |
-            vendor-${{ runner.os }}-
-
-      - name: Rubocop Lint
-        run: |
-          cd be
-          bundle config set --local path 'vendor/bundle'
-          bundle install
-          bundle exec rubocop --require rubocop/formatter/checkstyle_formatter --format RuboCop::Formatter::CheckstyleFormatter --no-color app/ lib/
-
-  test_rspec:
-    needs: build_prepare
-    runs-on: ubuntu-latest
-    container:
-      image: ruby:3.4.3
+    defaults:
+      run:
+        working-directory: ./be
     services:
       mysql-test:
         image: mysql:8
         env:
+          MYSQL_DATABASE: db-test
           MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: development
-          MYSQL_USER: dev
-          MYSQL_PASSWORD: dev
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - name: Create vendor/bundle directory
-        run: mkdir -p be/vendor/bundle
-
-      - name: Cache Ruby Gems
-        uses: actions/cache@v4
-        with:
-          path: be/vendor/bundle
-          key: vendor-${{ runner.os }}-${{ hashFiles('**/Gemfile.lock') }}
-          restore-keys: |
-            vendor-${{ runner.os }}-
-
-      - name: Run Rspec tests
+      - name: Install dependencies for faiss gem
         run: |
-          cd be
-          bundle config set --local path 'vendor/bundle'
+          apt-get update
+          apt-get install -y libopenblas-dev libomp-dev
+
+      - name: Bundle Install
+        run: |
           bundle install
+
+      - name: Prepare Database
+        run: |
           cp config/database-ci.yml config/database.yml
           RAILS_ENV=test bundle exec rails db:drop db:create db:migrate
+
+      - name: Run BE tests - Rubocop
+        run: |
+          bundle exec rubocop --require rubocop/formatter/checkstyle_formatter --format RuboCop::Formatter::CheckstyleFormatter --no-color app/ lib/
+
+      - name: Run BE tests - RSpec
+        run: |
           bundle exec rspec --format documentation
+
+  frontend_test:
+    needs: filter
+    if: ${{ github.event.pull_request.draft != true && needs.filter.outputs.frontend_changed == 'true'}}
+    runs-on: ubuntu-latest
+    container:
+      image: node:22
+    defaults:
+      run:
+        working-directory: ./fe
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Mark workspace safe for git (fix dubious ownership)
+        run: |
+          git config --global --add safe.directory $GITHUB_WORKSPACE
+
+      - name: Install dependencies
+        run: |
+          npm ci
+
+      - name: Run FE tests
+        run: |
+          npm run lint -- --debug
+
+      - name: Build app
+        run: |
+          npm run build
