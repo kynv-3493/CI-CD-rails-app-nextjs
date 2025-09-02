@@ -1,0 +1,66 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  backend_test:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+          MYSQL_DATABASE: rails_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping -h 127.0.0.1" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2.2" # Or your desired Ruby version
+          bundler-cache: true # Installs dependencies with bundle install
+      - name: Configure database.yml
+        run: |
+          cp config/database.yml.example config/database.yml
+          sed -i 's/username: root/username: root/' config/database.yml
+          sed -i 's/password:/password:/' config/database.yml
+          sed -i 's/host: localhost/host: 127.0.0.1/' config/database.yml
+          sed -i 's/database: your_database_name_test/database: rails_test/' config/database.yml
+      - name: Wait for MySQL
+        run: |
+          for i in $(seq 1 10); do
+            mysql -h 127.0.0.1 -u root -e "SELECT 1" && break
+            sleep 5
+          done
+      - name: Create and migrate database
+        run: |
+          bundle exec rails db:create RAILS_ENV=test
+          bundle exec rails db:migrate RAILS_ENV=test
+      - name: Run Rails tests
+        run: bundle exec rails test
+
+  frontend_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18" # Or your desired Node.js version
+          cache: "yarn" # Or 'npm' if you use npm
+      - name: Install frontend dependencies
+        working-directory: ./frontend # Assuming your Next.js app is in a 'frontend' directory
+        run: yarn install # Or npm install
+      - name: Run Next.js tests
+        working-directory: ./frontend
+        run: yarn test # Or npm test

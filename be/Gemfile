@@ -83,7 +83,7 @@ gem "dartsass-sprockets", "~> 3.2"
 gem "devise", "~> 4.9"
 gem "disco", "~> 0.5.1" # Recommendations using collaborative filtering
 gem "draper", "~> 4.0"
-gem "faiss", "~> 0.4.2" # Fast Approximate Nearest Neighbor Search
+# gem "faiss", "~> 0.4.2" # Fast Approximate Nearest Neighbor Search
 gem "grape", "~> 2.4"
 gem "grape-active_model_serializers", "~> 2.0"
 gem "grape_on_rails_routes", "~> 0.3.2"
